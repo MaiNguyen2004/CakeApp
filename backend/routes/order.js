@@ -15,4 +15,13 @@ router.post('/add-order', async (req, res) => {
         res.status(500).send(error)
     }
 })
+router.get('/purchase-order/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params
+        const purchase = await Order.find({ userId })
+        res.json(purchase)
+    } catch (err) {
+        res.status(500).send(err)
+    }
+})
 module.exports = router

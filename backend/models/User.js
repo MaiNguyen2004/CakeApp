@@ -3,6 +3,10 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    role: { type: String, required: true },
+    role: { type: String, enum: ['Buyer', 'Seller', 'Admin'], required: true },
+    gender: { type: String, enum: ['Male', 'Female', 'Other'], required: false },
+    avatar: { type: String },
+    dateOfBirth: { type: Date },
+    address: { type: String }, phone: { type: String }
 })
 module.exports = mongoose.model('User', userSchema)

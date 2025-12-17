@@ -16,41 +16,68 @@ router.get('/admin', async (req, res) => {
 // add product
 router.post('/add-product', async (req, res) => {
     try {
-        const { id, name, price, discription, size, flavor, stock, images, category } = req.body //get data from user
-        const newProduct = new Product({ id, name, price, discription, size, flavor, stock, images, category }) // create a new product
+        const { name, price, description, flavor, stock, images, categoryId, productCreatorId } = req.body //get data from user
+        console.log("data product: ", req.body)
+        const newProduct = new Product({ name, price, description, flavor, stock, images, categoryId, productCreatorId }) // create a new product
         await newProduct.save()// save to document of mongo
-        res.redirect('/admin')
+        return res.status(200).json({
+            message: "Thêm sản phẩm thành công", newProduct
+        })
     } catch (error) {
+        console.log("Backend Error: ", error);
         res.status(500).send(error)
     }
 })
-router.get('/get-product/:id', async (req, res) => {
+
+router.get('/get-product-by-creatorId/:creatorId', async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id)
+        const { creatorId } = req.params
+        // console.log("creator: ", creatorId)
+        if (!creatorId) {
+            res.status(400).json({ message: 'Người dùng chưa đăng nhập' })
+        }
+        const product = await Product.find({ productCreatorId: creatorId })
         if (!product) return res.status(404).json({ message: "Product not found" });
-        res.json(product)
+        res.status(200).json(product)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
 })
 
-//get info of a exist product
-router.get('/edit-product/:id', async (req, res) => {
+router.get('/get-product-by-createId-cateId/:creatorId/:cateId', async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id)
-        const products = await Product.find()
-        res.render('admin', { product, products })//send all product to the response
+        const { creatorId, cateId } = req.params
+        if (!creatorId) {
+            res.status(400).json({ message: 'Người dùng chưa đăng nhập' })
+        }
+        const product = await Product.findOne({ productCreatorId: creatorId, _id: cateId })
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        return res.json(product);
     } catch (error) {
-        res.status(500).send(error)
+        res.status(500).json({ message: error.message })
+    }
+})
+router.get('/get-product-by-cateId/:id', async (req, res) => {
+    try {
+        // console.log("id product: ", req.params.id)
+        const product = await Product.findById(req.params.id)
+        if (!product) return res.status(404).json({ message: "Product not found" });
+        res.status(200).json(product)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
     }
 })
 
 //update product
-router.post('/edit-product/:id', async (req, res) => {
+router.put('/edit-product/:id', async (req, res) => {
     try {
-        const { name, price, discription, size, flavor, stock, images, category } = req.body
-        await Product.findByIdAndUpdate(req.params.id, { name, price, discription, size, flavor, stock, images, category })
-        res.redirect('/admin')
+        // console.log("data product upadte: ", req.body)
+        const { name, price, description, flavor, stock, images, categoryId, productCreatorId } = req.body
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, { name, price, description, flavor, stock, images, categoryId, productCreatorId }, { new: true })
+        return res.status(200).json(updatedProduct);
     } catch (error) {
         res.status(500).send(error)
     }
@@ -59,8 +86,12 @@ router.post('/edit-product/:id', async (req, res) => {
 //delete product
 router.post('/delete-product/:id', async (req, res) => {
     try {
-        await Product.findByIdAndDelete(req.params.id)
-        res.redirect('/admin')
+        const deleteProduct = await Product.findByIdAndDelete(req.params.id)
+        if (!deleteProduct) {
+            res.status(400).json({ message: "Product not found." })
+        }
+        res.status(200).json({ message: "Delete product successfully." })
+
     } catch (error) {
         res.status(500).send(error)
     }

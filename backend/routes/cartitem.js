@@ -12,8 +12,9 @@ router.get('/get-cart', async (req, res) => {
 })
 router.post('/add-cart', async (req, res) => {
     try {
-        const { userId, cakeId, size, quantity, price, addedAt } = req.body
-        const newCart = new Cartitem({ userId, cakeId, size, quantity, price, addedAt })
+        console.log("data cartitem trong backend: ", req.body)
+        const { userId, cakeId, quantity, price, addedAt } = req.body
+        const newCart = new Cartitem({ userId, cakeId, quantity, price, addedAt })
         await newCart.save()
         return res.json({
             message: "Thêm vào giỏ hàng thành công!",
